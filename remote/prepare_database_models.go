@@ -4,6 +4,21 @@ import (
 	"sigma-production/interpreter"
 )
 
+// GraphQLTypeMap maps a native GraphQL type to a native database type.
+type GraphQLTypeMap struct {
+	Boolean string
+	Float   string
+	Int     string
+	String  string
+}
+
+// DatabaseRelationContext describes the type names that are required to form
+// relations across tables.
+type DatabaseRelationContext struct {
+	IdType string
+	IdRef  string
+}
+
 // DatabaseController initializes and destructs interpreter.Model relational
 // database tables. Returns a slice of strings that represent the executed sql
 // statements or an error if not all of the sql statements were able to

@@ -4,6 +4,13 @@ import (
 	"sigma-production/interpreter"
 )
 
+var (
+	relationContext = DatabaseRelationContext{
+		IdType: "SERIAL",
+		IdRef:  "INT",
+	}
+)
+
 // CreateTable creates a new table.
 func (p Postgres) CreateTable(target interpreter.Model, models []interpreter.Model) ([]string, error) {
 	panic("implement me")
