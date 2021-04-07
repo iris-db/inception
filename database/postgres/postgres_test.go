@@ -15,11 +15,10 @@ import (
 func TestPostgres_AddModel(t *testing.T) {
 	db, mock := newDBMock()
 	defer db.Close()
-	pg := postgres.New(db)
 
 	primaryType := api.Model{
 		Name: "User",
-		Fields: []api.Field{
+		Fields: api.FieldSet{
 			{
 				Name:     "username",
 				Type:     "String",
@@ -58,6 +57,8 @@ func TestPostgres_AddModel(t *testing.T) {
 		},
 	}
 
+	pg := postgres.New(db, api.ModelSet{primaryType, relationType})
+
 	dne1 := sqlmock.NewRows([]string{"exists"}).AddRow(false)
 	dne2 := sqlmock.NewRows([]string{"exists"}).AddRow(false)
 	dne3 := sqlmock.NewRows([]string{"exists"}).AddRow(true)
@@ -72,12 +73,12 @@ func TestPostgres_AddModel(t *testing.T) {
 	mock.ExpectExec("ALTER TABLE").WillReturnResult(driver.ResultNoRows)
 	mock.ExpectExec("ALTER TABLE").WillReturnResult(driver.ResultNoRows)
 
-	res, err := pg.AddModel(primaryType, []api.Model{primaryType, relationType})
+	res, err := pg.AddModel(primaryType)
 	if err != nil {
 		t.Fatalf("Error ::: %s", err.Error())
 	}
 
-	expected := []string{
+	expectedStmts := []string{
 		`CREATE TABLE "User" (id SERIAL PRIMARY KEY, username TEXT, email TEXT NOT NULL, password TEXT NOT NULL)`,
 		`CREATE TABLE "Settings" (id SERIAL PRIMARY KEY, theme TEXT NOT NULL)`,
 		`ALTER TABLE "Settings" ADD COLUMN "subUserId" INT NOT NULL`,
@@ -86,8 +87,60 @@ func TestPostgres_AddModel(t *testing.T) {
 		`ALTER TABLE "User" ADD CONSTRAINT "fk_settings_id" FOREIGN KEY (id) REFERENCES "Settings" (id) ON UPDATE CASCADE ON DELETE CASCADE`,
 	}
 
-	if !reflect.DeepEqual(res, expected) {
-		t.Fatalf("\ngot\n--- %s \n\nexpected\n--- %s", fmtSQLStmts(res), fmtSQLStmts(expected))
+	if !reflect.DeepEqual(res, expectedStmts) {
+		t.Fatalf("\ngot\n--- %s \n\nexpectedStmts\n--- %s", fmtSQLStmts(res), fmtSQLStmts(expectedStmts))
+	}
+}
+
+func TestPostgres_RemoveModel(t *testing.T) {
+	db, mock := newDBMock()
+	defer db.Close()
+
+	mock.ExpectQuery("DROP")
+
+	primaryType := api.Model{
+		Name: "User",
+		Fields: api.FieldSet{
+			{
+				Name:     "username",
+				Type:     "String",
+				Nullable: false,
+			},
+			{
+				Name:     "settings",
+				Type:     "Settings",
+				Nullable: false,
+			},
+		},
+	}
+	relationType := api.Model{
+		Name: "Settings",
+		Fields: api.FieldSet{
+			{
+				Name:     "subUser",
+				Type:     "User",
+				Nullable: false,
+			},
+		},
+	}
+
+	pg := postgres.New(db, api.ModelSet{primaryType, relationType})
+
+	mock.ExpectExec("ALTER TABLE").WillReturnResult(driver.ResultNoRows)
+	mock.ExpectExec("DROP TABLE").WillReturnResult(driver.ResultNoRows)
+
+	res, err := pg.RemoveModel(primaryType)
+	if err != nil {
+		t.Fatalf("Error ::: %s", err.Error())
+	}
+
+	expectedStmts := []string{
+		`ALTER TABLE "Settings" DROP COLUMN userId`,
+		`DROP TABLE "User"`,
+	}
+
+	if !reflect.DeepEqual(res, expectedStmts) {
+		t.Fatalf("\ngot\n--- %s \n\nexpectedStmts\n--- %s", fmtSQLStmts(res), fmtSQLStmts(expectedStmts))
 	}
 }
 

@@ -4,14 +4,6 @@ import (
 	"github.com/web-foundation/sigma-production/api"
 )
 
-// NativeGraphQLTypeMap maps a native GraphQL type to a native database type.
-type NativeGraphQLTypeMap struct {
-	Boolean string
-	Float   string
-	Int     string
-	String  string
-}
-
 // RelationContext describes the type names that are required to form
 // relations across tables.
 type RelationContext struct {
@@ -24,10 +16,8 @@ type RelationContext struct {
 // statements or an error if not all of the sql statements were able to
 // complete successfully.
 type RelationalDatabaseController interface {
-	AddModel(target api.Model, models []api.Model) ([]string, error)
-	CreateRelation(r Relation) ([]string, error)
-	RemoveModel(model api.Model) error
-	CheckExistence(t string) (bool, error)
+	AddModel(model api.Model) (sqlStmts []string, err error)
+	RemoveModel(model api.Model) (sqlStmts []string, err error)
 }
 
 // Operation is an operation that can be performed on a supported
