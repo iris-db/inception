@@ -3,60 +3,63 @@ package js
 import (
 	"fmt"
 	"os"
+	"os/exec"
 	"strings"
 )
 
-const (
-	templateLiteralChar = "%"
-)
+// DispatchCommandOption is an option for DispatchCommand.
+type DispatchCommandOption func(c *dispatchCommandConfig)
 
-// TemplateValues are the values to be interpolated in a template string.
-type TemplateValues map[string]string
+type dispatchCommandConfig struct {
+	Name             string
+	Args             []string
+	WorkingDirectory string // The directory to execute the command in relative to the FileCtl directory.
+}
 
-// ParseTemplate parses a Javascript template string, interpolating values that
-// are surrounded by % characters. Returns the interpolated string, which
-// should be valid Javascript code.
-func ParseTemplate(template string, values TemplateValues) string {
-	var interpolating bool
-	var optKeys []string
-	var optBuff []string
+// ArgsOption is a the options for a shell command.
+func ArgsOption(args ...string) DispatchCommandOption {
+	return func(c *dispatchCommandConfig) {
+		c.Args = args
+	}
+}
 
-	for _, r := range template {
-		c := string(r)
+// WorkingDirectoryOption sets the working directory for a shell command.
+func WorkingDirectoryOption(dir string) DispatchCommandOption {
+	return func(c *dispatchCommandConfig) {
+		c.WorkingDirectory = dir
+	}
+}
 
-		// Check if it is an the interpolation character and begin interpolating on the next character.
-		if c == templateLiteralChar {
-			if !interpolating {
-				optBuff = nil
-			} else {
-				optKeys = append(optKeys, strings.Join(optBuff, ""))
-			}
-			interpolating = !interpolating
-			continue
-		}
-
-		if interpolating {
-			optBuff = append(optBuff, c)
-		}
+// DispatchCommand executes a command in the current shell at the specified at
+// the specified working directory.
+func (f FileCtl) DispatchCommand(name string, opts ...DispatchCommandOption) {
+	c := &dispatchCommandConfig{Name: name}
+	for _, opt := range opts {
+		opt(c)
 	}
 
-	for _, k := range optKeys {
-		v := values[k]
-		if v == "" {
-			panic("no replacement value found for key: " + k)
-		}
-		template = strings.ReplaceAll(template, fmt.Sprintf("%s%s%s", templateLiteralChar, k, templateLiteralChar), v)
+	if err := os.Chdir(f.concatToPath(c.WorkingDirectory)); err != nil {
+		panic(err)
 	}
 
-	return template
+	if err := exec.Command(name, c.Args...).Run(); err != nil {
+		panic(err)
+	}
+
+	for n := 0; n < strings.Count(c.WorkingDirectory, "/"); n++ {
+		if err := os.Chdir(".."); err != nil {
+			panic(err)
+		}
+	}
 }
 
 // WriteToFile writes a byte slice to a file.
 func (f FileCtl) WriteToFile(name string, contents []byte) {
-	file, err := os.OpenFile(f.concatToPath(name), os.O_RDWR|os.O_APPEND|os.O_CREATE, 0644)
+	file, err := os.OpenFile(f.concatToPath(name), os.O_CREATE|os.O_RDWR|os.O_APPEND, 0644)
 	if err != nil {
 		panic(err)
 	}
+	defer file.Close()
 	if _, err := file.Write(contents); err != nil {
 		panic(err)
 	}
@@ -71,21 +74,25 @@ func (f FileCtl) InitDir() {
 
 // concatToPath joins a file name to the working directory.
 func (f FileCtl) concatToPath(name string) string {
-	return f.Directory + "/" + name
+	if name != "" {
+		return f.Directory + "/" + name
+	}
+	return f.Directory
 }
 
-func NewFileCtl(directory string, joins ...*FileCtl) *FileCtl {
-	ctl := &FileCtl{Directory: directory}
-	for _, j := range joins {
-		ctl.Directory = fmt.Sprintf("%s/%s", ctl.Directory, j.Directory)
-	}
-	return ctl
-}
+// FileCtlOption is an option for configuring a FileCtl.
+type FileCtlOption func(*FileCtl)
 
 // FileCtl is a utility struct for writing Javascript files.
 type FileCtl struct {
 	Directory string
 }
 
-// FileCtlOption is an option for configuring a FileCtl.
-type FileCtlOption func(*FileCtl)
+// NewFileCtl constructs a new FileCtl from a directory and options.
+func NewFileCtl(directory string, joins ...*FileCtl) *FileCtl {
+	ctl := &FileCtl{Directory: directory}
+	for _, j := range joins {
+		ctl.Directory = fmt.Sprintf("%s/%s", j.Directory, ctl.Directory)
+	}
+	return ctl
+}
