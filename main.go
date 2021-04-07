@@ -1,7 +1,9 @@
 package main
 
-import "fmt"
+import (
+	"github.com/web-foundation/sigma-production/compiler/js"
+)
 
 func main() {
-	fmt.Println("Hello world!")
+	js.MakeAPI()
 }
