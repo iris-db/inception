@@ -1,4 +1,4 @@
-package interpreter
+package api
 
 // Model is a transformable blueprint that can be serialized into a database.
 type Model struct {

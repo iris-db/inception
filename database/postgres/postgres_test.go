@@ -3,15 +3,13 @@ package postgres_test
 import (
 	"database/sql"
 	"database/sql/driver"
+	"github.com/DATA-DOG/go-sqlmock"
+	"github.com/web-foundation/sigma-production/api"
+	"github.com/web-foundation/sigma-production/database/postgres"
 	"log"
 	"reflect"
-	"sigma-production/remote/postgres"
 	"strings"
 	"testing"
-
-	"github.com/DATA-DOG/go-sqlmock"
-
-	"sigma-production/interpreter"
 )
 
 func TestPostgres_AddModel(t *testing.T) {
@@ -19,9 +17,9 @@ func TestPostgres_AddModel(t *testing.T) {
 	defer db.Close()
 	pg := postgres.New(db)
 
-	primaryType := interpreter.Model{
+	primaryType := api.Model{
 		Name: "User",
-		Fields: []interpreter.Field{
+		Fields: []api.Field{
 			{
 				Name:     "username",
 				Type:     "String",
@@ -44,9 +42,9 @@ func TestPostgres_AddModel(t *testing.T) {
 			},
 		},
 	}
-	relationType := interpreter.Model{
+	relationType := api.Model{
 		Name: "Settings",
-		Fields: []interpreter.Field{
+		Fields: []api.Field{
 			{
 				Name:     "theme",
 				Type:     "String",
@@ -74,7 +72,7 @@ func TestPostgres_AddModel(t *testing.T) {
 	mock.ExpectExec("ALTER TABLE").WillReturnResult(driver.ResultNoRows)
 	mock.ExpectExec("ALTER TABLE").WillReturnResult(driver.ResultNoRows)
 
-	res, err := pg.AddModel(primaryType, []interpreter.Model{primaryType, relationType})
+	res, err := pg.AddModel(primaryType, []api.Model{primaryType, relationType})
 	if err != nil {
 		t.Fatalf("Error ::: %s", err.Error())
 	}

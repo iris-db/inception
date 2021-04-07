@@ -3,18 +3,21 @@ package postgres
 import (
 	"database/sql"
 	"fmt"
+	"github.com/web-foundation/sigma-production/api"
+	"github.com/web-foundation/sigma-production/database"
 	"reflect"
-	"sigma-production/interpreter"
-	"sigma-production/remote"
 	"strings"
+
+	// PostgreSQL driver.
+	_ "github.com/lib/pq"
 )
 
 var (
-	relationContext = remote.DatabaseRelationContext{
+	relationContext = database.RelationContext{
 		IdType: "SERIAL",
 		IdRef:  "INT",
 	}
-	nativeTypeMap = remote.NativeGraphQLTypeMap{
+	nativeTypeMap = database.NativeGraphQLTypeMap{
 		Boolean: "BOOLEAN",
 		Float:   "DECIMAL",
 		Int:     "INT",
@@ -22,8 +25,8 @@ var (
 	}
 )
 
-func (p Postgres) AddModel(target interpreter.Model, models []interpreter.Model) ([]string, error) {
-	fks := make([]remote.Relation, 0)
+func (p Postgres) AddModel(target api.Model, models []api.Model) ([]string, error) {
+	fks := make([]database.Relation, 0)
 	sqlStmts := make([]string, 0)
 
 	if exists, err := p.checkExistence(target.Name); err != nil {
@@ -47,7 +50,7 @@ func (p Postgres) AddModel(target interpreter.Model, models []interpreter.Model)
 
 		f := reflect.ValueOf(nativeTypeMap).FieldByName(ft)
 		if !f.IsValid() {
-			var t *interpreter.Model
+			var t *api.Model
 			for _, m := range models {
 				if m.Name == ft {
 					t = &m
@@ -59,9 +62,9 @@ func (p Postgres) AddModel(target interpreter.Model, models []interpreter.Model)
 				continue
 			}
 
-			fks = append(fks, remote.Relation{
-				From: 	   target,
-				To: 	   *t,
+			fks = append(fks, database.Relation{
+				From:      target,
+				To:        *t,
 				FieldName: name,
 				Nullable:  nullable,
 			})
@@ -96,11 +99,11 @@ func (p Postgres) AddModel(target interpreter.Model, models []interpreter.Model)
 	return sqlStmts, nil
 }
 
-func (p Postgres) RemoveModel(model interpreter.Model) error {
+func (p Postgres) RemoveModel(model api.Model) error {
 	panic("implement me")
 }
 
-func (p Postgres) CreateRelation(r remote.Relation) ([]string, error) {
+func (p Postgres) CreateRelation(r database.Relation) ([]string, error) {
 	sqlStmts := make([]string, 0)
 
 	var colC string
@@ -137,6 +140,6 @@ func New(db *sql.DB) *Postgres {
 }
 
 // Postgres is the PostgreSQL implementation.
-type Postgres struct{
+type Postgres struct {
 	db *sql.DB
 }

@@ -1,4 +1,4 @@
-module sigma-production
+module github.com/web-foundation/sigma-production
 
 go 1.16
 

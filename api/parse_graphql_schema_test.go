@@ -1,10 +1,10 @@
-package interpreter_test
+package api_test
 
 import (
 	"reflect"
 	"testing"
 
-	"sigma-production/interpreter"
+	"sigma-production/api"
 )
 
 func TestPSchema(t *testing.T) {
@@ -22,13 +22,13 @@ func TestPSchema(t *testing.T) {
 			theme: String!
 		}
 `
-		expectedResult := []interpreter.Model{
-			{Name: "Settings", Fields: []interpreter.Field{
+		expectedResult := []api.Model{
+			{Name: "Settings", Fields: []api.Field{
 				{Name: "id", Type: "ID", Nullable: false},
 				{Name: "theme", Type: "String", Nullable: false},
 			},
 			},
-			{Name: "User", Fields: []interpreter.Field{
+			{Name: "User", Fields: []api.Field{
 				{Name: "id", Type: "ID", Nullable: false},
 				{Name: "username", Type: "String", Nullable: true},
 				{Name: "email", Type: "String", Nullable: false},
@@ -38,7 +38,7 @@ func TestPSchema(t *testing.T) {
 			},
 		}
 
-		res := interpreter.ParseGQLSchema(schema)
+		res := api.ParseGQLSchema(schema)
 
 		if !reflect.DeepEqual(res, expectedResult) {
 			t.Errorf("Not matching. Wanted %+v got %+v", expectedResult, res)

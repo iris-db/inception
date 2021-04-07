@@ -1,4 +1,4 @@
-package interpreter
+package api
 
 import (
 	"encoding/json"
