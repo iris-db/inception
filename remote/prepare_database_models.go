@@ -4,8 +4,8 @@ import (
 	"sigma-production/interpreter"
 )
 
-// GraphQLTypeMap maps a native GraphQL type to a native database type.
-type GraphQLTypeMap struct {
+// NativeGraphQLTypeMap maps a native GraphQL type to a native database type.
+type NativeGraphQLTypeMap struct {
 	Boolean string
 	Float   string
 	Int     string
@@ -19,13 +19,15 @@ type DatabaseRelationContext struct {
 	IdRef  string
 }
 
-// DatabaseController initializes and destructs interpreter.Model relational
+// RelationalDatabaseController initializes and destructs interpreter.Model relational
 // database tables. Returns a slice of strings that represent the executed sql
 // statements or an error if not all of the sql statements were able to
 // complete successfully.
-type DatabaseController interface {
-	CreateTable(target interpreter.Model, models []interpreter.Model) ([]string, error)
-	DeleteTable(model interpreter.Model) error
+type RelationalDatabaseController interface {
+	AddModel(target interpreter.Model, models []interpreter.Model) ([]string, error)
+	CreateRelation(r Relation) ([]string, error)
+	RemoveModel(model interpreter.Model) error
+	CheckExistence(t string) (bool, error)
 }
 
 // DatabaseOperation is an operation that can be performed on a supported
@@ -33,15 +35,15 @@ type DatabaseController interface {
 type DatabaseOperation string
 
 const (
-	CreateTable DatabaseOperation = "CREATE_TABLE"
-	DeleteTable                   = "DELETE_TABLE"
+	SyncModel   DatabaseOperation = "SYNC_MODEL"
+	DeleteModel                   = "DELETE_MODEL"
 )
 
 func (d *DatabaseExecutionError) Error() string {
 	return "error while performing operation " + string(d.Operation) + " on model " + d.Model.Name
 }
 
-// DatabaseExecutionError is an error that occurs when a DatabaseController is
+// DatabaseExecutionError is an error that occurs when a RelationalDatabaseController is
 // unable to successfully complete a task.
 type DatabaseExecutionError struct {
 	Operation DatabaseOperation
