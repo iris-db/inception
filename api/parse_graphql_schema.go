@@ -7,6 +7,27 @@ import (
 	"github.com/graph-gophers/graphql-go"
 )
 
+type introspectionQuery struct {
+	Schema struct {
+		Types []introspectionType `json:"types"`
+	} `json:"__schema"`
+}
+
+type introspectionType struct {
+	Kind   string `json:"kind"`
+	Name   string `json:"name"`
+	Fields []struct {
+		Name string `json:"name"`
+		Type struct {
+			Kind   string `json:"kind"`
+			Name   string `json:"name"`
+			OfType struct {
+				Name string `json:"name"`
+			} `json:"ofType"`
+		} `json:"type"`
+	} `json:"fields"`
+}
+
 // ParseGQLSchema transforms a GraphQL schema into a slice of models.
 func ParseGQLSchema(schema string) []Model {
 	s, err := graphql.ParseSchema(addTempQuery(schema), nil)
@@ -64,25 +85,4 @@ func addTempQuery(schema string) string {
 		return schema + "\ntype Query { _temp: String! }"
 	}
 	return schema
-}
-
-type introspectionQuery struct {
-	Schema struct {
-		Types []introspectionType `json:"types"`
-	} `json:"__schema"`
-}
-
-type introspectionType struct {
-	Kind   string `json:"kind"`
-	Name   string `json:"name"`
-	Fields []struct {
-		Name string `json:"name"`
-		Type struct {
-			Kind   string `json:"kind"`
-			Name   string `json:"name"`
-			OfType struct {
-				Name string `json:"name"`
-			} `json:"ofType"`
-		} `json:"type"`
-	} `json:"fields"`
 }

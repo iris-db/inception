@@ -4,6 +4,14 @@ import (
 	"github.com/web-foundation/sigma-production/api"
 )
 
+// Relation describes a dependency between two models.
+type Relation struct {
+	From      api.Model
+	To        api.Model
+	FieldName string
+	Nullable  bool
+}
+
 // RelationContext describes the type names that are required to form
 // relations across tables.
 type RelationContext struct {
@@ -29,10 +37,6 @@ const (
 	DeleteModel           = "DELETE_MODEL"
 )
 
-func (d *ExecutionError) Error() string {
-	return "error while performing operation " + string(d.Operation) + " on model " + d.Model.Name
-}
-
 // ExecutionError is an error that occurs when a RelationalDatabaseController is
 // unable to successfully complete a task.
 type ExecutionError struct {
@@ -41,10 +45,6 @@ type ExecutionError struct {
 	Err       error
 }
 
-// Relation describes a dependency between two models.
-type Relation struct {
-	From      api.Model
-	To        api.Model
-	FieldName string
-	Nullable  bool
+func (d *ExecutionError) Error() string {
+	return "error while performing operation " + string(d.Operation) + " on model " + d.Model.Name
 }

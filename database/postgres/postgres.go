@@ -26,6 +26,17 @@ var (
 	}
 )
 
+// Postgres is the PostgreSQL implementation.
+type Postgres struct {
+	db     *sql.DB
+	models api.ModelSet
+}
+
+// New creates a new Postgres.
+func New(db *sql.DB, models []api.Model) *Postgres {
+	return &Postgres{db: db, models: models}
+}
+
 func (p *Postgres) AddModel(model api.Model) (sqlStmts []string, err error) {
 	var relations []database.Relation
 	var cols []string
@@ -162,15 +173,4 @@ func (p *Postgres) checkExistence(t string) (bool, error) {
 
 func (p *Postgres) toForeignKey(col string) string {
 	return fmt.Sprintf("fk_%s_id", col)
-}
-
-// New creates a new Postgres.
-func New(db *sql.DB, models []api.Model) *Postgres {
-	return &Postgres{db: db, models: models}
-}
-
-// Postgres is the PostgreSQL implementation.
-type Postgres struct {
-	db     *sql.DB
-	models api.ModelSet
 }
