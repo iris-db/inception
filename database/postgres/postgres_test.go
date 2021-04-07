@@ -19,41 +19,17 @@ func TestPostgres_AddModel(t *testing.T) {
 	primaryType := api.Model{
 		Name: "User",
 		Fields: api.FieldSet{
-			{
-				Name:     "username",
-				Type:     "String",
-				Nullable: true,
-			},
-			{
-				Name:     "email",
-				Type:     "String",
-				Nullable: false,
-			},
-			{
-				Name:     "password",
-				Type:     "String",
-				Nullable: false,
-			},
-			{
-				Name:     "settings",
-				Type:     "Settings",
-				Nullable: false,
-			},
+			{Name: "username", Type: "String", Nullable: true},
+			{Name: "email", Type: "String", Nullable: false},
+			{Name: "password", Type: "String", Nullable: false},
+			{Name: "settings", Type: "Settings", Nullable: false},
 		},
 	}
 	relationType := api.Model{
 		Name: "Settings",
 		Fields: []api.Field{
-			{
-				Name:     "theme",
-				Type:     "String",
-				Nullable: false,
-			},
-			{
-				Name:     "subUser",
-				Type:     "User",
-				Nullable: false,
-			},
+			{Name: "theme", Type: "String", Nullable: false},
+			{Name: "subUser", Type: "User", Nullable: false},
 		},
 	}
 
@@ -101,26 +77,14 @@ func TestPostgres_RemoveModel(t *testing.T) {
 	primaryType := api.Model{
 		Name: "User",
 		Fields: api.FieldSet{
-			{
-				Name:     "username",
-				Type:     "String",
-				Nullable: false,
-			},
-			{
-				Name:     "settings",
-				Type:     "Settings",
-				Nullable: false,
-			},
+			{Name: "username", Type: "String", Nullable: false},
+			{Name: "settings", Type: "Settings", Nullable: false},
 		},
 	}
 	relationType := api.Model{
 		Name: "Settings",
 		Fields: api.FieldSet{
-			{
-				Name:     "subUser",
-				Type:     "User",
-				Nullable: false,
-			},
+			{Name: "subUser", Type: "User", Nullable: false},
 		},
 	}
 
