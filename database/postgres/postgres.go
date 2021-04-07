@@ -153,7 +153,7 @@ func (p *Postgres) createRelation(r database.Relation) ([]string, error) {
 
 func (p *Postgres) checkExistence(t string) (bool, error) {
 	var exists bool
-	r := p.db.QueryRow(fmt.Sprintf(`SELECT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = '%s')`, t))
+	r := p.db.QueryRow(fmt.Sprintf(`SELECT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = "public"" AND table_name = "%s")`, t))
 	if err := r.Scan(&exists); err != nil {
 		return false, err
 	}

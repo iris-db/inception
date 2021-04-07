@@ -5,6 +5,34 @@ import (
 	"testing"
 )
 
+func TestModelSet_FindByName(t *testing.T) {
+	tests := map[string]struct {
+		models api.ModelSet
+		find   string
+		want   func(m *api.Model) bool
+	}{
+		"exists": {
+			models: api.ModelSet{{Name: "User"}, {Name: "Settings"}},
+			find:   "Settings",
+			want:   func(m *api.Model) bool { return m != nil },
+		},
+		"does not exist": {
+			models: api.ModelSet{{Name: "User"}},
+			find:   "Settings",
+			want:   func(m *api.Model) bool { return m == nil },
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			res := tc.models.FindByName(tc.find)
+			if !tc.want(res) {
+				t.Fatal("wanted true; got false")
+			}
+		})
+	}
+}
+
 func TestField_IsNativeGraphQLType(t *testing.T) {
 	tests := map[string]struct {
 		typeName string
@@ -22,7 +50,7 @@ func TestField_IsNativeGraphQLType(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			f := api.Field{Name: "testField", Type: tc.typeName, Nullable: false}
 			if f.IsNativeGraphQLType(api.NativeGraphQLTypeMap{}) != tc.want {
-				t.Fatalf("%s: expected true; got false", name)
+				t.Fatal("wanted true; got false")
 			}
 		})
 	}

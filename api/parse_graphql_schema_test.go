@@ -22,18 +22,22 @@ func TestParseSchema(t *testing.T) {
 		}
 `
 	expectedResult := []api.Model{
-		{Name: "Settings", Fields: []api.Field{
-			{Name: "id", Type: "ID", Nullable: false},
-			{Name: "theme", Type: "String", Nullable: false},
+		{
+			Name: "Settings",
+			Fields: []api.Field{
+				{Name: "id", Type: "ID", Nullable: false},
+				{Name: "theme", Type: "String", Nullable: false},
+			},
 		},
-		},
-		{Name: "User", Fields: []api.Field{
-			{Name: "id", Type: "ID", Nullable: false},
-			{Name: "username", Type: "String", Nullable: true},
-			{Name: "email", Type: "String", Nullable: false},
-			{Name: "password", Type: "String", Nullable: false},
-			{Name: "settings", Type: "Settings", Nullable: false},
-		},
+		{
+			Name: "User",
+			Fields: []api.Field{
+				{Name: "id", Type: "ID", Nullable: false},
+				{Name: "username", Type: "String", Nullable: true},
+				{Name: "email", Type: "String", Nullable: false},
+				{Name: "password", Type: "String", Nullable: false},
+				{Name: "settings", Type: "Settings", Nullable: false},
+			},
 		},
 	}
 
