@@ -46,7 +46,8 @@ func (f FileCtl) DispatchCommand(name string, opts ...DispatchCommandOption) {
 		panic(err)
 	}
 
-	for n := 0; n < strings.Count(c.WorkingDirectory, "/"); n++ {
+	for n := 0; n < strings.Count(c.WorkingDirectory, "/")+1; n++ {
+		print("WRITING\n")
 		if err := os.Chdir(".."); err != nil {
 			panic(err)
 		}
