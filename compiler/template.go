@@ -1,4 +1,4 @@
-package rest
+package compiler
 
 import (
 	"fmt"
@@ -10,7 +10,7 @@ const (
 )
 
 // TemplateValues are the values to be interpolated in a template string.
-type TemplateValues map[string]string
+type TemplateValues map[string]*string
 
 // ParseTemplate parses a Javascript template string, interpolating values that
 // are surrounded by % characters. Returns the interpolated string, which
@@ -44,10 +44,10 @@ func ParseTemplate(template string, values TemplateValues) string {
 
 	for _, k := range optKeys {
 		v := values[k]
-		if v == "" {
+		if v == nil {
 			panic("no replacement value found for key: " + k)
 		}
-		template = strings.ReplaceAll(template, fmt.Sprintf("%c%s%c", templateIdentifier, k, templateIdentifier), v)
+		template = strings.ReplaceAll(template, fmt.Sprintf("%c%s%c", templateIdentifier, k, templateIdentifier), *v)
 	}
 
 	return template
