@@ -1,4 +1,4 @@
-package js
+package compiler
 
 import (
 	"fmt"
@@ -16,10 +16,17 @@ type dispatchCommandConfig struct {
 	WorkingDirectory string // The directory to execute the command in relative to the FileCtl directory.
 }
 
-// ArgsOption is a the options for a shell command.
+// ArgsOption is multiple args for a shell command.
 func ArgsOption(args ...string) DispatchCommandOption {
 	return func(c *dispatchCommandConfig) {
-		c.Args = args
+		c.Args = append(c.Args, args...)
+	}
+}
+
+// ArgOption is a single arg for a shell command.
+func ArgOption(arg string) DispatchCommandOption {
+	return func(c *dispatchCommandConfig) {
+		c.Args = append(c.Args, arg)
 	}
 }
 
@@ -47,7 +54,6 @@ func (f FileCtl) DispatchCommand(name string, opts ...DispatchCommandOption) {
 	}
 
 	for n := 0; n < strings.Count(c.WorkingDirectory, "/")+1; n++ {
-		print("WRITING\n")
 		if err := os.Chdir(".."); err != nil {
 			panic(err)
 		}
@@ -56,7 +62,22 @@ func (f FileCtl) DispatchCommand(name string, opts ...DispatchCommandOption) {
 
 // WriteToFile writes a byte slice to a file.
 func (f FileCtl) WriteToFile(name string, contents []byte) {
-	file, err := os.OpenFile(f.concatToPath(name), os.O_CREATE|os.O_RDWR|os.O_APPEND, 0644)
+	p := f.concatToPath(name)
+
+	// If it is a directory attempt to initialize path.
+	t := strings.Split(name, "/")
+	if len(t) > 0 {
+		dir := f.concatToPath(strings.Join(t[:len(t)-1], "/"))
+		_, err := os.Stat(f.concatToPath(dir))
+		if os.IsNotExist(err) {
+			if err := os.MkdirAll(dir, 0777); err != nil {
+				panic(err)
+			}
+		}
+	}
+
+	// Create and write to file.
+	file, err := os.OpenFile(p, os.O_CREATE|os.O_RDWR|os.O_APPEND, 0644)
 	if err != nil {
 		panic(err)
 	}
@@ -95,5 +116,6 @@ func NewFileCtl(directory string, joins ...*FileCtl) *FileCtl {
 	for _, j := range joins {
 		ctl.Directory = fmt.Sprintf("%s/%s", j.Directory, ctl.Directory)
 	}
+	ctl.InitDir()
 	return ctl
 }
