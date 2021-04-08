@@ -1,6 +1,7 @@
 package rest
 
 import (
+	"github.com/web-foundation/sigma-production/api"
 	"github.com/web-foundation/sigma-production/compiler"
 	"github.com/web-foundation/sigma-production/compiler/js/rest/templates"
 )
@@ -17,6 +18,7 @@ type APIOpts struct {
 	Prefix string
 	Type   string
 	Port   string
+	Models api.ModelSet
 }
 
 // CompilationOpts are the compiler options to configure the formatting of the
@@ -59,15 +61,15 @@ func initProject(opts CompilationOpts, ctl *compiler.FileCtl) {
 	ctl.DispatchCommand("npm", compiler.ArgsOption("init", "-y"))
 	ctl.DispatchCommand("npm", compiler.ArgOption("i"), compiler.ArgsOption(restPackages...), compiler.ArgsOption(packages...))
 	t := compiler.ParseTemplate(templates.Main, compiler.TemplateValues{
-		"API_PORT":   opts.Port,
-		"API_PREFIX": opts.Prefix,
+		"API_PORT":   compiler.StrPtr(opts.Port),
+		"API_PREFIX": compiler.StrPtr(opts.Prefix),
 	})
 	ctl.WriteToFile("src/main.js", []byte(t))
 }
 
 func createRoutes(opts CompilationOpts, ctl *compiler.FileCtl) {
 	t := compiler.ParseTemplate(templates.Router, compiler.TemplateValues{
-		"ROOT_ROUTES": " ",
+		"ROOT_ROUTES": compiler.StrPtr(""),
 	})
 	ctl.WriteToFile("index.js", []byte(t))
 }
