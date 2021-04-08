@@ -1,9 +1,16 @@
 package main
 
 import (
-	"github.com/web-foundation/sigma-production/compiler/js"
+	"github.com/web-foundation/sigma-production/compiler/js/rest"
 )
 
 func main() {
-	js.MakeAPI()
+	rest.CompileAPI(rest.CompilationOpts{
+		APIOpts: rest.APIOpts{
+			Name:   "Test",
+			Prefix: "api",
+			Type:   "rest",
+			Port:   "4000",
+		},
+	})
 }
