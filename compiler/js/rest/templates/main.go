@@ -11,7 +11,7 @@ import router from "./routes";
 async function main() {
     const app = express();
 
-	app.use("%API_PREFIX%", router);
+	app.use("/%API_PREFIX%", router);
 
     app.listen(%API_PORT%, () => {
 		console.log("API started on http://localhost:%API_PORT%");
