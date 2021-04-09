@@ -2,9 +2,11 @@ package rest
 
 import (
 	_ "embed"
+	"encoding/json"
+	"strings"
+
 	"github.com/web-foundation/sigma-production/api"
 	"github.com/web-foundation/sigma-production/compiler"
-	"strings"
 )
 
 var (
@@ -63,16 +65,44 @@ func CompileAPI(opts CompilationOpts) {
 //go:embed templates/main.txt
 var mainTemplate string
 
+// tsConfig are the required tsconfig.json settings for the API to compile
+// the api to Javascript. These defaults must not be overridden as it can cause
+// problems with the libraries that are used.
+var tsConfig = map[string]interface{}{
+	"compilerOptions": map[string]interface{}{
+		"target":          "es6",
+		"module":          "commonjs",
+		"esModuleInterop": true,
+		"skipLibCheck":    true,
+	},
+}
+
+// initProject initializes an npm project and installs the required
+// dependencies. Creates a main.ts and tsconfig.json file.
 func initProject(opts CompilationOpts, ctl *compiler.FileCtl) {
+	// Initialize project with npm and install required dependencies.
 	ctl.DispatchCommand("npm", compiler.ArgsOption("init", "-y"))
 	ctl.DispatchCommand("npm", compiler.ArgOption("i"), compiler.ArgsOption(restPackages...), compiler.ArgsOption(packages...))
-	t := compiler.ParseTemplate(mainTemplate, compiler.TemplateValues{
+
+	// Create tsconfig.json and write defaults.
+	b, err := json.MarshalIndent(tsConfig, "", "\t")
+	if err != nil {
+		panic(err)
+	}
+	ctl.WriteToFile("tsconfig.json", b)
+
+	// Parse the main.ts file template and write it.
+	r := compiler.ParseTemplate(mainTemplate, compiler.TemplateValues{
 		"API_PORT":   compiler.StrPtr(opts.Port),
 		"API_PREFIX": compiler.StrPtr(opts.Prefix),
 	})
-	ctl.WriteToFile("src/main.ts", []byte(t))
+	ctl.WriteToFile("src/main.ts", []byte(r))
 }
 
+// createModels is in charge of the models directory of the project.
+// It creates controllers for api models for usage in express routes.
+// The controllers are responsible for interacting with the database that was
+// chosen to be used.
 func createModels(opts CompilationOpts, ctl *compiler.FileCtl) {
 	for _, m := range opts.Models {
 		println(m.Name)
@@ -82,6 +112,10 @@ func createModels(opts CompilationOpts, ctl *compiler.FileCtl) {
 //go:embed templates/router.txt
 var routerTemplate string
 
+// createRoutes is in charge of creating all crud express routes.
+// The routes are located in the routes folder, with the index.ts file
+// exporting the master router. The api prefix will add a base route for the
+// master router.
 func createRoutes(opts CompilationOpts, ctl *compiler.FileCtl) {
 	var r []string
 

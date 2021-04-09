@@ -10,10 +10,12 @@ import (
 // DispatchCommandOption is an option for DispatchCommand.
 type DispatchCommandOption func(c *dispatchCommandConfig)
 
+// dispatchCommandConfig the config struct for DispatchCommand.
+// It is configured through a DispatchCommandOption.
 type dispatchCommandConfig struct {
 	Name             string
 	Args             []string
-	WorkingDirectory string // The directory to execute the command in relative to the FileCtl directory.
+	WorkingDirectory string // WorkingDirectory is the directory to execute the command relative to the FileCtl directory.
 }
 
 // ArgsOption is multiple args for a shell command.
