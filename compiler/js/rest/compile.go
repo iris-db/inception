@@ -1,9 +1,10 @@
 package rest
 
 import (
+	_ "embed"
 	"github.com/web-foundation/sigma-production/api"
 	"github.com/web-foundation/sigma-production/compiler"
-	"github.com/web-foundation/sigma-production/compiler/js/rest/templates"
+	"strings"
 )
 
 var (
@@ -44,10 +45,12 @@ func CompileAPI(opts CompilationOpts) {
 	// File controllers.
 	initProjectCtl := compiler.NewFileCtl(opts.Name)
 	createRoutesCtl := compiler.NewFileCtl("src/routes", initProjectCtl)
+	createModelsCtl := compiler.NewFileCtl("src/models", initProjectCtl)
 
 	// Initialize compilation stages.
 	stages := []compilationStage{
 		{Name: "Init Project", Impl: initProject, Ctl: initProjectCtl},
+		{Name: "Create Models", Impl: createModels, Ctl: createModelsCtl},
 		{Name: "Create Routes", Impl: createRoutes, Ctl: createRoutesCtl},
 	}
 
@@ -57,19 +60,43 @@ func CompileAPI(opts CompilationOpts) {
 	}
 }
 
+//go:embed templates/main.txt
+var mainTemplate string
+
 func initProject(opts CompilationOpts, ctl *compiler.FileCtl) {
 	ctl.DispatchCommand("npm", compiler.ArgsOption("init", "-y"))
 	ctl.DispatchCommand("npm", compiler.ArgOption("i"), compiler.ArgsOption(restPackages...), compiler.ArgsOption(packages...))
-	t := compiler.ParseTemplate(templates.Main, compiler.TemplateValues{
+	t := compiler.ParseTemplate(mainTemplate, compiler.TemplateValues{
 		"API_PORT":   compiler.StrPtr(opts.Port),
 		"API_PREFIX": compiler.StrPtr(opts.Prefix),
 	})
-	ctl.WriteToFile("src/main.js", []byte(t))
+	ctl.WriteToFile("src/main.ts", []byte(t))
 }
 
+func createModels(opts CompilationOpts, ctl *compiler.FileCtl) {
+	for _, m := range opts.Models {
+		println(m.Name)
+	}
+}
+
+//go:embed templates/router.txt
+var routerTemplate string
+
 func createRoutes(opts CompilationOpts, ctl *compiler.FileCtl) {
-	t := compiler.ParseTemplate(templates.Router, compiler.TemplateValues{
-		"ROOT_ROUTES": compiler.StrPtr(""),
+	var r []string
+
+	for _, m := range opts.Models {
+		tg := CrudGenerator{Model: m}
+		r = append(r, tg.Get())
+	}
+
+	var sep string
+	if len(opts.Models) > 1 {
+		sep = "\n"
+	}
+
+	t := compiler.ParseTemplate(routerTemplate, compiler.TemplateValues{
+		"ROOT_ROUTES": compiler.StrPtr(strings.Join(r, sep)),
 	})
-	ctl.WriteToFile("index.js", []byte(t))
+	ctl.WriteToFile("index.ts", []byte(t))
 }

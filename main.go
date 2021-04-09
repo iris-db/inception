@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/web-foundation/sigma-production/api"
 	"github.com/web-foundation/sigma-production/compiler/js/rest"
 )
 
@@ -11,6 +12,12 @@ func main() {
 			Prefix: "api",
 			Type:   "rest",
 			Port:   "4000",
+			Models: api.ModelSet{
+				{
+					Name:   "User",
+					Fields: api.FieldSet{},
+				},
+			},
 		},
 	})
 }

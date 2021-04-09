@@ -1,0 +1,4 @@
+router.get("/", async (req, res) => {
+	const users = await %MODEL_NAME%Controller.findAll(req.query);
+	return res.json(users);
+});
