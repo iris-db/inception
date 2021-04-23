@@ -1,12 +1,12 @@
-# Sigma
+# Inception
 
-Sigma is a tool that generates a serverless REST or GraphQL api in Javascript.
+Inception is a tool that generates a REST or GraphQL api in Javascript. Inception also offers cloud depoyment tools to easily deploy an API to AWS, GCP, or Azure.
 
 ## Usage
 
-Sigma generates an api from an api specification file. You can define an api spec as JSON or as a GraphQL schema.
+Inception generates an api from an api specification file. You can define an api spec as JSON or as a GraphQL schema.
 
-1. Create a file named `api_spec.gql` or `api_spec.json`
+1. Create a file named `apiSpec.gql` or `apiSpec.json`
 2. Install the api compiler
 3. In the terminal, run `sigma compile -o my_api`
 4. Change into the deployment directory `cd my_api/.deploy`
